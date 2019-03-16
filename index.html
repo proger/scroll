@@ -1,259 +1,290 @@
 <!doctype html>
 <html lang=en>
-<head>
-  <meta charset=utf-8>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>scroll</title>
-  <style>
-body {
-	background-color: #f8f8f8;
-	color: #333;
-  font-family: helvetica;
+  <head>
+    <meta charset=utf-8>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>scroll</title>
+    <style>
+     body {
+	   background-color: #f8f8f8;
+	   color: #333;
+       font-family: helvetica;
 
-	-webkit-font-smoothing: antialiased;
-	-moz-font-smoothing: grayscale;
-}
+	   -webkit-font-smoothing: antialiased;
+	   -moz-font-smoothing: grayscale;
+     }
 
-h1, h2, h3, h4, h5, h6 {
-	text-transform: uppercase;
-}
+     h1, h2, h3, h4, h5, h6 {
+	   text-transform: uppercase;
+     }
 
-a {
-	color: #28f;
-	text-decoration: none;
-}
+     a {
+	   color: #28f;
+	   text-decoration: none;
+     }
 
-main {
-	margin: 0 auto;
-	max-width: 30em;
-	padding: 1em;
-}
+     main {
+	   margin: 0 auto;
+	   max-width: 25em;
+	   padding: 1em;
+     }
 
-header {
-	margin: 0 auto;
-	max-width: 30em;
-	padding: 1em;
-	position: fixed;
-	top: 0;
-}
+     header {
+	   margin: 0 auto;
+	   max-width: 25em;
+	   padding: 1em;
+	   position: fixed;
+	   top: 0;
+     }
 
-.article-list__page {
-	border-top: 1px solid #ddd;
-	clear: both;
-	padding-bottom: 3em;
-	position: relative;
-}
+     .page-header {
+       font-size: 700%;
+	   background-color: #ddd;
+	   color: #111;
+	   padding: .25em .5em;
+	   position: absolute;
+	   z-index: 1;
+       margin: 0;
+     }
 
-.page-header {
-	background-color: #ddd;
-	display: inline-block;
-	color: #888;
-	padding: .25em .5em;
-	position: absolute;
-	left: calc(50% - .75em);
-	top: -.75em;
-	vertical-align: middle;
-	z-index: 1;
-}
+     .article-list__page {
+       display: block;
+	   padding-bottom: 3em;
+	   position: relative;
+       margin: 0 auto;
+       width: 300px;
+     }
 
+     .article-list__item {
+     }
 
-.article-list__item {
-	background-color: #eee;
-	float: left;
-	height: 15em;
-	max-width: 50%;
-	opacity: .75;
-	transform: scale(.8);
-	transition: opacity .2s, transform .2s;
-	width: 15em;
-}
+     .article-list__item__image--loading {
+	   opacity: 0;
+     }
 
-.article-list__item:hover {
-  transform: scale(1);
-  opacity: 1;
-}
+     footer {
+	   background-color: #222;
+	   box-shadow: 0 0 1em rgba(#000, .25);
+	   display: block;
+	   bottom: 0;
+	   left: 0;
+	   list-style-type: none;
+	   margin: 0;
+	   padding: .5em;
+	   position: fixed;
+	   right: 0;
+	   text-align: center;
+	   transform: translateY(0);
+	   transition: transform .2s;
+	   z-index: 2;
+     }
 
-.article-list__item__image {
-	display: block;
-	height: auto;
-	margin: 0;
-	opacity: 1;
-	transition: opacity .2s;
-	width: 100%;
-}
+     .article-list__pagination--inactive {
+	   transform: translateY(100%);
+     }
 
-.article-list__item__image--loading {
-	opacity: 0;
-}
+     .article-list__pagination__item {
+	   display: inline-block;
+	   margin: 0 1em;
+	   color: white;
+     }
 
-.article-list__pagination {
-	background-color: #222;
-	box-shadow: 0 0 1em rgba(#000, .25);
-	display: block;
-	bottom: 0;
-	left: 0;
-	list-style-type: none;
-	margin: 0;
-	padding: .5em;
-	position: fixed;
-	right: 0;
-	text-align: center;
-	transform: translateY(0);
-	transition: transform .2s;
-	z-index: 2;
-}
+     .article-list__pagination__item a {
+       color: #888;
+       text-decoration: none;
+     }
 
-.article-list__pagination--inactive {
-	transform: translateY(100%);
-}
+     #currentScrollTop {
+	   font-family: monaco, monospace;
+     }
 
-.article-list__pagination__item {
-	display: inline-block;
-	margin: 0 1em;
-	color: white;
-}
+     .plot {
+       width: 100%;
+       height: 60px;
+     }
+    </style>
+  </head>
+  <body>
+    <main id="main">	
+	  <div class="article-list" id="article-list"></div>
+    </main>
+    <footer>
+      <ul class="article-list__pagination article-list__pagination--inactive" id="article-list-pagination"></ul>
+    </footer>
 
-.article-list__pagination__item a {
-  color: #888;
-  text-decoration: none;
-}
+    <script>
+     function getPageId(n) {
+	   return 'article-page-' + n;
+     }
 
-#currentScrollTop {
-	font-family: monaco, monospace;
-}
-  </style>
-</head>
-<body>
-<header>	
-	<h1>Infinite Scroll + Pagination Experiment</h1>
-	<p>After a poll by <a href="https://twitter.com/smashingmag">@smashingmag</a>, <a href="https://twitter.com/TimSeverien/status/693186708494536704">@timseverien got the idea to combine pagination and infinite scroll.</a> The former gives the user control, but needs more effort. The latter lacks control, but requires no special interaction.</p>
-	<p>Forked by @darkproger with ❤️so you can scroll either way and keep a fixed number of pages</p>
-</header>
-<main id="main">	
-	<div class="article-list" id="article-list"></div>
-	<ul class="article-list__pagination article-list__pagination--inactive" id="article-list-pagination"></ul>
-</main>
+     function getArticleImage(page, i) {
+	   const image = new Image;
+	   image.className = 'article-list__item__image article-list__item__image--loading';
+       image.src = `https://dummyimage.com/300x100/000/fff&text=${page}.${i}`;
+	   image.onload = function() {
+		 image.classList.remove('article-list__item__image--loading');
+	   };
+	   return image;
+     }
 
-<script>
-function getPageId(n) {
-	return 'article-page-' + n;
-}
+     function getArticle(page, i) {
+	   const articleImage = getArticleImage(page, i);
+	   const article = document.createElement('article');
+	   article.className = 'article-list__item';
+	   article.appendChild(articleImage);
+	   
+	   return article;
+     }
 
-function getDocumentHeight() {
-	const body = document.getElementById('main');
-	const html = document.documentElement;
-	
-	return Math.max(
-		body.scrollHeight, body.offsetHeight,
-		html.clientHeight, html.scrollHeight, html.offsetHeight
-	);
-};
+     function getArticlePage(page, articlesPerPage = 16) {
+	   const pageElement = document.createElement('div');
+	   pageElement.id = getPageId(page);
+	   pageElement.className = 'article-list__page';
+	   
+	   pageElement.innerHTML = `<p class="page-header">${page}</p>`
+	   
+       for (let i = 0; i < articlesPerPage; i++) {
+		 pageElement.appendChild(getArticle(page, i));
+	   }
+	   
+	   return pageElement;
+     }
 
-function getScrollTop() {
-	return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
-}
-
-function getArticleImage() {
-	const hash = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-	const image = new Image;
-	image.className = 'article-list__item__image article-list__item__image--loading';
-	image.src = 'http://api.adorable.io/avatars/250/' + hash;
-	
-	image.onload = function() {
-		image.classList.remove('article-list__item__image--loading');
-	};
-	
-	return image;
-}
-
-function getArticle() {
-	const articleImage = getArticleImage();
-	const article = document.createElement('article');
-	article.className = 'article-list__item';
-	article.appendChild(articleImage);
-	
-	return article;
-}
-
-function getArticlePage(page, articlesPerPage = 16) {
-	const pageElement = document.createElement('div');
-	pageElement.id = getPageId(page);
-	pageElement.className = 'article-list__page';
-	
-	pageElement.innerHTML = `<p class="page-header">${page}</p>`
-	
-	while (articlesPerPage--) {
-		pageElement.appendChild(getArticle());
-	}
-	
-	return pageElement;
-}
-
-function makePaginationItem(page) {
-	const pageLink = document.createElement('a');
-	pageLink.href = '#' + getPageId(page);
-	pageLink.innerHTML = page;
-	
-	const listItem = document.createElement('li');
-	listItem.className = 'article-list__pagination__item';
-	listItem.appendChild(pageLink);
-	listItem.id = 'page-list-item-' + page
-		
-	if (page === 2) {
-		articleListPagination.classList.remove('article-list__pagination--inactive');
-	}
-	return listItem;
-}
-
-function addPage(page) {
-	articleList.appendChild(getArticlePage(page));
-	articleListPagination.appendChild(makePaginationItem(page));
-}
-
-function prependPage(page) {
-	const element = getArticlePage(page);
-	articleList.prepend(element);
-	articleListPagination.prepend(makePaginationItem(page));
-	return element;
-}
-
-function removePage(page) {
-	if (page < 1) return; 
-	articleListPagination.removeChild(document.getElementById('page-list-item-' + page));
-	articleList.removeChild(document.getElementById(getPageId(page)));
-}
+     function makePaginationItem(page) {
+	   const pageLink = document.createElement('a');
+	   pageLink.href = '#' + getPageId(page);
+	   pageLink.innerHTML = page;
+	   
+	   const listItem = document.createElement('li');
+	   listItem.className = 'article-list__pagination__item';
+	   listItem.appendChild(pageLink);
+	   listItem.id = 'page-list-item-' + page
+	   
+	   if (page === 2) {
+		 articleListPagination.classList.remove('article-list__pagination--inactive');
+	   }
+	   return listItem;
+     }
 
 
-const articleList = document.getElementById('article-list');
-const articleListPagination = document.getElementById('article-list-pagination');
+     function getDocumentHeight() {
+	   const body = document.getElementById('main');
+	   const html = document.documentElement;
 
-const listItem = document.createElement('li');
-listItem.className = 'article-list__pagination__item';
-listItem.id = 'currentScrollTop';
-articleListPagination.appendChild(listItem);
+	   return Math.max(
+		 body.scrollHeight, body.offsetHeight,
+		 html.clientHeight, html.scrollHeight, html.offsetHeight
+	   );
+     };
 
-let lastpage = 0;
-let firstpage = 1;
+     function getScrollTop() {
+	   return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+     }
 
-addPage(++lastpage);
-addPage(++lastpage);
+     function appendPage(page) {
+       const old = document.getElementById(getPageId(page));
+	   const element = getArticlePage(page);
+       if (old) {
+         console.log('append-replace', page);
 
-listItem.innerText = `top=${getScrollTop()} height=${getDocumentHeight() - window.innerHeight}`
+         articleList.replaceChild(element, old);
+       } else {
+         console.log('append', page);
 
-window.onscroll = function() {
-  document.getElementById('currentScrollTop').innerText = `top=${getScrollTop()|0} height=${getDocumentHeight() - window.innerHeight}`;
+	     articleList.appendChild(element);
+       }
+	   articleListPagination.appendChild(makePaginationItem(page));
 
-	const top = getScrollTop()|0;
-	if (top == 0 && firstpage > 1) {
-		const element = prependPage(--firstpage);
-		document.getElementById(getPageId(firstpage+1)).scrollIntoView();
-		removePage(lastpage--);
-		return;
-	}
-	if (top < getDocumentHeight() - window.innerHeight - 5) return;
-	addPage(++lastpage);
-	removePage(firstpage++);
-};
-</script>
-</body>
+       return element;
+     }
+
+     function prependPage(page) {
+       const old = document.getElementById(getPageId(page));
+	   const element = getArticlePage(page);
+       if (old) {
+         console.log('prepend-replace', page);
+
+         articleList.replaceChild(element, old);
+       } else {
+         console.log('prepend', page);
+	     articleList.prepend(element);
+       }
+	   articleListPagination.prepend(makePaginationItem(page));
+
+       return element;
+     }
+
+     function removePage(page, really = false) {
+	   if (page < 1) return;
+
+       const old = document.getElementById(getPageId(page));
+	   articleListPagination.removeChild(document.getElementById('page-list-item-' + page));
+
+       if (!really) {
+	     const stub = document.createElement('div');
+	     stub.id = getPageId(page);
+	     stub.style.height = `${old.scrollHeight}px`;
+
+         console.log('remove-replace', page);
+	     articleList.replaceChild(stub, old);
+       } else {
+         console.log('remove', page);
+         articleList.removeChild(old);
+       }
+     }
+
+
+     const articleList = document.getElementById('article-list');
+     const articleListPagination = document.getElementById('article-list-pagination');
+
+     const listItem = document.createElement('li');
+     listItem.className = 'article-list__pagination__item';
+     listItem.id = 'currentScrollTop';
+     articleListPagination.appendChild(listItem);
+
+     let lastpage = 0;
+     let firstpage = 1;
+     let maxpage = 20;
+
+     appendPage(++lastpage);
+     appendPage(++lastpage);
+     appendPage(++lastpage);
+
+     listItem.innerText = `y=${getScrollTop()} h=${getDocumentHeight() - window.innerHeight}`
+
+     function up() {
+       if (firstpage <= 1) {
+         return;
+       }
+       prependPage(--firstpage);
+	   removePage(lastpage--);
+     }
+
+     function down() {
+       if (lastpage >= maxpage) {
+         return;
+       }
+	   removePage(firstpage++);
+       appendPage(++lastpage);
+     }
+
+     window.onscroll = function() {
+       const top = getScrollTop()|0;
+       document.getElementById('currentScrollTop').innerText = `y=${top} h=${getDocumentHeight() - window.innerHeight}`;
+	   if (top <= document.getElementById(getPageId(firstpage)).offsetTop) {
+         up();
+         const hash = `#${getPageId(firstpage)}`;
+         if (hash != location.hash) {
+           history.pushState(null, null, hash);
+         }
+       } else if (top >= document.getElementById(getPageId(lastpage)).offsetTop) {
+         const hash = `#${getPageId(lastpage)}`;
+         if (hash != location.hash) {
+           history.pushState(null, null, hash);
+         }
+         down();
+       }
+     };
+    </script>
+  </body>
 </html>
